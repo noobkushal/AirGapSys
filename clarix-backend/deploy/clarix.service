@@ -1,0 +1,39 @@
+# systemd unit with kernel-enforced egress filtering for THIS service (cgroup eBPF), independent of the
+# in-process guard. UNTESTED in the build environment (no systemd). Install to /etc/systemd/system/.
+# Ollama must run as its own service with OLLAMA_HOST=127.0.0.1:11434.
+[Unit]
+Description=Clarix AI backend (air-gapped agent harness)
+After=network.target ollama.service
+
+[Service]
+User=clarix
+Group=clarix
+WorkingDirectory=/opt/clarix
+EnvironmentFile=/etc/clarix/clarix.env
+ExecStart=/opt/clarix/.venv/bin/python -m clarix
+Restart=on-failure
+
+# Egress: only loopback is reachable from this service, enforced by the kernel
+IPAddressDeny=any
+IPAddressAllow=localhost
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+# Filesystem / privilege hardening
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+PrivateDevices=yes
+ReadWritePaths=/opt/clarix/data
+ProtectKernelTunables=yes
+ProtectKernelModules=yes
+ProtectControlGroups=yes
+LockPersonality=yes
+RestrictRealtime=yes
+RestrictSUIDSGID=yes
+CapabilityBoundingSet=
+SystemCallFilter=@system-service
+SystemCallErrorNumber=EPERM
+
+[Install]
+WantedBy=multi-user.target

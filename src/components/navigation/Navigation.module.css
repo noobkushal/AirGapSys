@@ -1,0 +1,53 @@
+.logo {
+  position: fixed; z-index: var(--z-logo);
+  top: calc(1.2rem + env(safe-area-inset-top, 0px)); left: clamp(1rem, 2.4vw, 2.4rem);
+  display: flex; align-items: center; gap: .4rem; padding: 0; border: 0; background: transparent;
+  font: 400 1.05rem var(--font-sans); color: var(--ink); cursor: pointer;
+}
+/* invisible bridge enlarging the hover target */
+.logo::after { content: ''; position: absolute; inset: -12px -18px -12px -12px; }
+.logo svg { width: 1.05rem; height: 1.05rem; }
+.logoOpen { color: #2463ff; }
+
+.scrim { position: fixed; inset: 0; z-index: var(--z-scrim); background: rgba(13,27,55,.16); opacity: 0; visibility: hidden; transition: opacity .25s, visibility .25s; }
+.scrimOpen { opacity: 1; visibility: visible; }
+
+.drawer {
+  position: fixed; z-index: var(--z-drawer); inset: 0 auto 0 0; width: min(var(--drawer-w), 88vw);
+  padding: 82px 14px 22px 12px; overflow-y: auto; overscroll-behavior: contain; color: #53627c;
+  background: rgba(239,246,255,.94); border-right: 1px solid rgba(255,255,255,.82);
+  box-shadow: 18px 0 60px rgba(29,55,110,.14);
+  backdrop-filter: blur(28px) saturate(1.35); -webkit-backdrop-filter: blur(28px) saturate(1.35);
+  transform: translateX(-105%); opacity: 0; visibility: hidden;
+  transition: transform .28s cubic-bezier(.2,.75,.25,1), opacity .22s ease, visibility .28s;
+}
+.drawerOpen { transform: translateX(0); opacity: 1; visibility: visible; }
+
+.head { display: flex; align-items: center; justify-content: space-between; padding: 0 12px 16px; color: #111b31; font: 600 12px var(--font-sans); letter-spacing: .14em; text-transform: uppercase; }
+.head span { display: flex; align-items: center; gap: 10px; }
+.head svg { width: 18px; height: 18px; color: #0b0f1a; }
+.close { display: grid; place-items: center; border: 0; background: transparent; color: #62718a; padding: 6px; border-radius: 9px; cursor: pointer; }
+.close:hover { background: rgba(65,111,255,.1); color: #245dff; }
+.close svg { width: 18px; height: 18px; }
+
+.label { padding: 12px 13px 8px; font: 600 10px var(--font-sans); letter-spacing: .14em; text-transform: uppercase; color: #8995a9; }
+
+.item { position: relative; display: flex; align-items: center; gap: 14px; min-height: 58px; padding: 0 12px; margin: 4px 0; border: 1px solid transparent; border-radius: 17px; color: #586780; font: 400 16px var(--font-sans); letter-spacing: .005em; transition: background .18s, border-color .18s, color .18s, transform .18s; }
+.item svg { width: 22px; height: 22px; flex: 0 0 22px; stroke-width: 1.7; }
+.item:hover { background: rgba(255,255,255,.72); border-color: rgba(76,139,255,.28); color: #245dff; transform: translateX(2px); }
+.active { color: #15223a; background: linear-gradient(105deg, rgba(24,190,225,.25), rgba(59,102,255,.12) 75%, rgba(255,255,255,.18)); border-color: rgba(47,197,239,.62); box-shadow: 0 8px 28px rgba(46,137,235,.1); }
+.active:hover { color: #15223a; transform: none; background: linear-gradient(105deg, rgba(24,190,225,.28), rgba(59,102,255,.14) 75%, rgba(255,255,255,.2)); border-color: rgba(47,197,239,.7); }
+.active::before { content: ''; position: absolute; left: -13px; top: 15px; bottom: 15px; width: 5px; border-radius: 0 5px 5px 0; background: #18c7e8; box-shadow: 0 0 15px rgba(24,199,232,.6); }
+.active svg { color: #2563ff; }
+
+.badge { margin-left: auto; min-width: 26px; padding: 5px 10px; border-radius: 999px; font: 700 10px var(--font-sans); letter-spacing: .08em; text-align: center; white-space: nowrap; }
+.red { color: #d92f59; background: rgba(255,94,130,.15); border: 1px solid rgba(255,94,130,.42); }
+.amber { color: #a85b00; background: rgba(255,181,73,.18); border: 1px solid rgba(255,181,73,.48); }
+.green { color: #008a67; background: rgba(58,213,164,.17); border: 1px solid rgba(58,213,164,.44); }
+
+.foot { margin: 16px 3px 0; padding: 13px 14px; border: 1px solid rgba(255,255,255,.85); border-radius: 16px; background: linear-gradient(120deg, rgba(255,255,255,.72), rgba(218,232,255,.62)); font: 400 11px/1.5 var(--font-sans); color: #71809a; }
+.foot strong { display: block; color: #243650; font-weight: 600; margin-bottom: 3px; }
+.foot a { display: inline-block; margin-top: 6px; color: #2463ff; font-weight: 600; }
+
+@media (max-width: 820px) { .drawer { padding-top: 76px; } .item { min-height: 54px; font-size: 15px; } }
+@media (prefers-reduced-motion: reduce) { .drawer, .scrim, .item { transition: none; } }

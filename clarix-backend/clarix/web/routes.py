@@ -1,0 +1,32 @@
+from .. import services as s
+from .core import Route
+
+ROUTES: list[Route] = [
+    Route("GET", "/health", s.public_health, "Liveness + auth/guard status (public)", "meta", public=True),
+    Route("GET", "/api/overview", s.overview, "SOC dashboard summary", "overview"),
+    Route("POST", "/api/agent/chat", s.agent_chat, "Run a prompt through the full security pipeline", "agent", rate="chat"),
+    Route("GET", "/api/security/threats", s.threats, "Recorded prompt-injection threats", "security"),
+    Route("POST", "/api/security/analyze", s.analyze, "Score a prompt with the injection detector", "security", rate="analyze"),
+    Route("GET", "/api/security/monitor", s.security_monitor, "Hourly decisions + live events", "security"),
+    Route("GET", "/api/airgap", s.airgap_get, "Egress series, blocked log and host posture", "airgap"),
+    Route("POST", "/api/airgap/probe", s.airgap_probe, "Attempt a connection through the guard (never reaches the network)", "airgap"),
+    Route("POST", "/api/taint/scenario", s.taint_scenario, "Run a real taint/sink block scenario", "taint"),
+    Route("GET", "/api/policies", s.policies_list, "List policies", "policy"),
+    Route("PATCH", "/api/policies/{id}", s.policy_patch, "Enable/disable a policy", "policy"),
+    Route("GET", "/api/tools", s.tools_list, "List tools and permission levels", "tools"),
+    Route("PUT", "/api/tools/{id}/permission", s.tool_permission, "Set a tool permission level", "tools"),
+    Route("POST", "/api/tools/{id}/execute", s.tool_execute, "Execute a tool through policy + sandbox", "tools"),
+    Route("GET", "/api/approvals", s.approvals_list, "Approval queue", "approvals"),
+    Route("POST", "/api/approvals/simulate", s.approval_simulate, "Create a demo approval request (CLARIX_DEMO_ENDPOINTS)", "approvals"),
+    Route("POST", "/api/approvals/{id}/resolve", s.approval_resolve, "Approve or deny a pending request", "approvals"),
+    Route("GET", "/api/rag/documents", s.rag_documents, "Indexed documents", "rag"),
+    Route("POST", "/api/rag/ingest", s.rag_ingest, "Ingest a document (multipart file or JSON text)", "rag", rate="ingest"),
+    Route("POST", "/api/rag/query", s.rag_query, "Semantic search", "rag", rate="analyze"),
+    Route("GET", "/api/ollama/status", s.ollama_status, "Ollama status and installed models", "ollama"),
+    Route("POST", "/api/ollama/benchmark", s.ollama_benchmark, "Measure local inference speed", "ollama", rate="chat"),
+    Route("GET", "/api/audit", s.audit_list, "Audit ledger with hash chain", "audit"),
+    Route("GET", "/api/audit/chain", s.audit_list, "Alias of /api/audit", "audit"),
+    Route("GET", "/api/audit/verify", s.audit_verify, "Recompute and verify the whole chain server-side", "audit"),
+    Route("GET", "/api/audit/head", s.audit_head, "Current head hash (anchor this externally)", "audit"),
+    Route("GET", "/api/health", s.health_view, "Subsystem health and host telemetry", "health"),
+]

@@ -1,0 +1,51 @@
+:root {
+  /* Clarix palette (from the original prototype + UI references) */
+  --bg: #e8f2f9;
+  --ink: #071225;
+  --ink-2: #1c2b45;
+  --mute: #52647c;
+  --mute-2: #8794a8;
+  --line: rgba(53, 92, 154, 0.16);
+
+  --cyan: #10cfe0;
+  --blue: #2563ff;
+  --violet: #8b5cf6;
+  --pink: #ff4d86;
+
+  --green: #0a9f73;
+  --green-soft: rgba(58, 213, 164, 0.17);
+  --green-line: rgba(58, 213, 164, 0.5);
+  --red: #d92f59;
+  --red-soft: rgba(255, 94, 130, 0.14);
+  --red-line: rgba(255, 94, 130, 0.45);
+  --amber: #a85b00;
+  --amber-soft: rgba(255, 181, 73, 0.2);
+  --amber-line: rgba(255, 181, 73, 0.55);
+  --blue-soft: rgba(65, 111, 255, 0.12);
+  --blue-line: rgba(65, 111, 255, 0.35);
+  --violet-soft: rgba(139, 92, 246, 0.14);
+  --violet-line: rgba(139, 92, 246, 0.4);
+
+  --font-sans: 'Sofia Sans', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+
+  --shadow-card: 0 18px 50px rgba(58, 87, 177, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --grad-primary: linear-gradient(135deg, #14b8ff, #2563ff);
+  --grad-violet: linear-gradient(135deg, #9b6cff, #6a4bff);
+  --grad-pink: linear-gradient(135deg, #ff6a95, #ff2f7d);
+
+  --header-h: 76px;
+  --drawer-w: 310px;
+  --z-backdrop: 0;
+  --z-main: 1;
+  --z-top: 20;
+  --z-scrim: 39;
+  --z-drawer: 40;
+  --z-logo: 42;
+  --z-modal: 60;
+  --z-toast: 70;
+}

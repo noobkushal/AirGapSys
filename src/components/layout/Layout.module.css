@@ -1,0 +1,23 @@
+.backdrop { position: fixed; inset: 0; z-index: var(--z-backdrop); overflow: hidden; pointer-events: none; background: var(--bg); }
+.robot { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 50%; transform: translateX(var(--shift, 0)); filter: saturate(1.12) contrast(1.03); animation: robotIn .8s ease both;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 calc(var(--shift, 0px) + 12%)); mask-image: linear-gradient(to right, transparent 0, #000 calc(var(--shift, 0px) + 12%)); }
+.dots { position: absolute; inset: 0; background:
+  radial-gradient(ellipse at 72% 36%, rgba(0,225,239,.14), transparent 28%),
+  radial-gradient(ellipse at 14% 78%, rgba(255,105,176,.14), transparent 30%),
+  radial-gradient(#aab9f0 35%, transparent 42%);
+  background-size: auto, auto, 12px 12px; opacity: .55;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 40% 50%, #000, transparent 100%); mask-image: radial-gradient(ellipse 80% 70% at 40% 50%, #000, transparent 100%); }
+@keyframes robotIn { from { opacity: 0; } to { opacity: 1; } }
+@media (max-width: 900px) { .robot { opacity: .4; transform: none; -webkit-mask-image: none; mask-image: none; } }
+
+.top { position: fixed; z-index: var(--z-top); left: 0; right: 0; top: 0; display: flex; justify-content: flex-end; align-items: center; gap: 1.2rem; padding: calc(1.15rem + env(safe-area-inset-top, 0px)) clamp(1rem, 2.4vw, 2.4rem) 0; pointer-events: none; }
+.top > * { pointer-events: auto; }
+.links { display: flex; gap: 1.4rem; font: 600 .66rem var(--font-sans); letter-spacing: .07em; text-transform: uppercase; }
+.links a { transition: opacity .2s; }
+.links a:hover { opacity: .55; }
+.demo { display: inline-flex; align-items: center; gap: .4rem; padding: .22rem .7rem; border-radius: 999px; font: 700 .64rem var(--font-mono); color: #8a5200; background: rgba(255,181,73,.2); border: 1px solid rgba(255,181,73,.55); }
+.demo i { width: .45rem; height: .45rem; border-radius: 50%; background: #ff9f1a; }
+@media (max-width: 760px) { .links { display: none; } }
+.main { position: relative; z-index: var(--z-main); min-height: 100vh; }
+
+.bell { display: inline-flex; align-items: center; gap: .4rem; padding: .22rem .7rem; border-radius: 999px; font: 700 .64rem var(--font-mono); color: #a85b00; background: rgba(255,181,73,.2); border: 1px solid rgba(255,181,73,.55); }

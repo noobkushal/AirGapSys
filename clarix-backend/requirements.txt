@@ -1,0 +1,5 @@
+fastapi>=0.110
+uvicorn>=0.29
+psutil>=5.9
+# optional: PDF ingestion
+# pypdf>=4.0
