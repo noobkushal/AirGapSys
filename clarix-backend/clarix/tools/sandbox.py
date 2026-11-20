@@ -163,5 +163,24 @@ def run_command(workspace: Path, command_line: str) -> str:
         return "\n".join(sorted(x.name + ("/" if x.is_dir() else "") for x in target.iterdir())[:200]) or "(empty)"
     if cmd not in ALLOWED_COMMANDS or any(a not in ALLOWED_COMMANDS[cmd] for a in args):
         raise ToolError(f"Command not in the inspection allowlist: {', '.join(sorted(ALLOWED_COMMANDS)) + ', ls'}")
-    r = subprocess.run([cmd, *args], capture_output=True, text=True, timeout=5, shell=False, env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"}, cwd=str(workspace.resolve()))
-    return (r.stdout or r.stderr).strip()[:MAX_RETURN_CHARS] or "(no output)"
+    try:
+        r = subprocess.run([cmd, *args], capture_output=True, text=True, timeout=5, shell=False, env={"PATH": "/usr/bin:/bin", "LC_ALL": "C"} if os.name != "nt" else None, cwd=str(workspace.resolve()))
+        return (r.stdout or r.stderr).strip()[:MAX_RETURN_CHARS] or "(no output)"
+    except (FileNotFoundError, OSError) as e:
+        if os.name == "nt":
+            import platform
+            if cmd == "uname":
+                if "-s" in args:
+                    return platform.system()
+                if "-r" in args:
+                    return platform.release()
+                if "-m" in args:
+                    return platform.machine()
+                return f"{platform.system()} {platform.node()} {platform.release()} {platform.version()} {platform.machine()}"
+            if cmd == "hostname":
+                import socket
+                return socket.gethostname()
+            if cmd == "whoami":
+                import getpass
+                return getpass.getuser()
+        raise ToolError(f"Command execution failed: {e}")

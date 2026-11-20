@@ -215,6 +215,43 @@ class DevMode(ApiBase):
         object.__setattr__(self.settings, "demo_endpoints", False)
         self.assertEqual(self.call("POST", "/api/approvals/simulate", {})[0], 404)
 
+    def test_slack_routes(self):
+        s, st, _ = self.call("GET", "/api/slack/status")
+        self.assertEqual(s, 200)
+        self.assertIn("connectionState", st)
+        self.assertIn("enabled", st)
+        self.assertEqual(st["connectionState"], "DISCONNECTED")
+
+        # Configure Slack
+        mock_webhook = "https://hooks." + "slack.com/services/" + "T11/B22/SEC33"
+        s, cfg, _ = self.call("POST", "/api/slack/config", {
+            "webhookUrl": mock_webhook,
+            "channel": "#alerts",
+            "enabled": True,
+        })
+        self.assertEqual(s, 200)
+        self.assertTrue(cfg["enabled"])
+        self.assertNotIn("SEC33", cfg["webhookUrlMasked"])
+
+        # Preferences
+        s, pref, _ = self.call("GET", "/api/slack/preferences")
+        self.assertEqual(s, 200)
+        self.assertIn("prompt_injection", pref)
+        s, pref2, _ = self.call("PUT", "/api/slack/preferences", {"prompt_injection": False})
+        self.assertEqual(s, 200)
+        self.assertFalse(pref2["prompt_injection"])
+
+        # History
+        s, hist, _ = self.call("GET", "/api/slack/history")
+        self.assertEqual(s, 200)
+        self.assertIsInstance(hist, list)
+
+        # Clear config
+        s, clr, _ = self.call("DELETE", "/api/slack/config")
+        self.assertEqual(s, 200)
+        self.assertFalse(clr["enabled"])
+        self.assertFalse(clr["configured"])
+
 
 class AuthMode(ApiBase):
     tokens = {TOKEN: "alice", "b" * 20: "bob"}

@@ -61,6 +61,11 @@ class Settings:
     chat_timeout_s: float = 120.0
     rag_min_score_neural: float = 0.30   # cosine; drops clearly irrelevant passages. Tune for your embedding model
     rag_min_score_lexical: float = 0.10  # for the word-overlap fallback embedder
+    slack_enabled: bool = False
+    slack_webhook_url: str = ""
+    slack_channel: str = ""
+    slack_relay_enabled: bool = False
+    slack_relay_interval_s: float = 3.0
 
     @property
     def workspace(self) -> Path:
@@ -106,6 +111,11 @@ class Settings:
             rate_limit_per_min=int(e.get("CLARIX_RATE_LIMIT_PER_MIN", "60")),
             rag_min_score_neural=float(e.get("CLARIX_RAG_MIN_SCORE_NEURAL", "0.30")),
             rag_min_score_lexical=float(e.get("CLARIX_RAG_MIN_SCORE_LEXICAL", "0.10")),
+            slack_enabled=_bool(e.get("CLARIX_SLACK_ENABLED"), False),
+            slack_webhook_url=e.get("CLARIX_SLACK_WEBHOOK_URL", ""),
+            slack_channel=e.get("CLARIX_SLACK_CHANNEL", ""),
+            slack_relay_enabled=_bool(e.get("CLARIX_SLACK_RELAY_ENABLED"), False),
+            slack_relay_interval_s=float(e.get("CLARIX_SLACK_RELAY_INTERVAL_S", "3.0")),
         )
         s.validate(allow_non_loopback=_bool(e.get("CLARIX_ALLOW_NON_LOOPBACK"), False))
         return s

@@ -51,6 +51,17 @@ class Approvals:
                 (seq, aid, utcstamp(now), now + self.timeout, risk, classification, action[:300], tool, resource[:300], requester, json.dumps(pending) if pending else None))
         self.audit.append(user=requester, action=f"Approval requested: {action[:200]}", component="Human Approval", risk=risk,
                           decision="REQUIRE_APPROVAL", classification=classification, payload=f"approval:{aid}:pending")
+        if hasattr(self, "slack") and self.slack:
+            self.slack.on_event(
+                event_type="Human Approval Requested",
+                category="approval_requests",
+                severity="HIGH" if risk in ("HIGH", "CRITICAL") else "MEDIUM",
+                title=f"Approval Requested: {tool}",
+                description=f"Action '{action[:160]}' on resource '{resource[:100]}' requested by {requester}. Decision pending.",
+                component="Human Approval",
+                decision="REQUIRE_APPROVAL",
+                event_id=aid,
+            )
         return self.get(aid)
 
     @staticmethod
@@ -79,6 +90,17 @@ class Approvals:
                 n += 1
                 self.audit.append(user="system", action=f"Approval {r['id']} expired", component="Human Approval", risk=r["risk"],
                                   decision="BLOCK", classification=r["classification"], payload=f"approval:{r['id']}:expired")
+                if hasattr(self, "slack") and self.slack:
+                    self.slack.on_event(
+                        event_type="Human Approval Denied",
+                        category="approval_decisions",
+                        severity="HIGH",
+                        title=f"Approval Expired: {r['id']}",
+                        description=f"Approval request {r['id']} auto-denied after timing out ({self.timeout} s).",
+                        component="Human Approval",
+                        decision="DENIED",
+                        event_id=r["id"],
+                    )
         return n
 
     def list(self) -> list[dict]:
@@ -105,6 +127,18 @@ class Approvals:
         self.audit.append(user=operator, action=f"{'Approved' if decision == 'APPROVED' else 'Denied'} {aid}", component="Human Approval",
                           risk=row["risk"], decision="ALLOW" if decision == "APPROVED" else "BLOCK", classification=row["classification"],
                           payload=f"approval:{aid}:{decision}")
+        if hasattr(self, "slack") and self.slack:
+            is_approved = decision == "APPROVED"
+            self.slack.on_event(
+                event_type=f"Human Approval {'Granted' if is_approved else 'Denied'}",
+                category="approval_decisions",
+                severity="LOW" if is_approved else "HIGH",
+                title=f"Approval {aid} {'Granted' if is_approved else 'Denied'}",
+                description=f"Operator {operator} {decision.lower()} request {aid} ({row['action'][:100]}). Note: {note or 'None'}",
+                component="Human Approval",
+                decision=decision,
+                event_id=aid,
+            )
         if decision == "APPROVED" and row["pending_json"]:
             self._resume(aid, json.loads(row["pending_json"]), operator)
         return self.get(aid)

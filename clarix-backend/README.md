@@ -43,9 +43,50 @@ Frontend: set `VITE_USE_MOCKS=false` and `VITE_API_URL=http://localhost:8000` in
 `PATCH /api/policies/{id}` · `GET /api/tools` · `PUT /api/tools/{id}/permission` · `POST /api/tools/{id}/execute` ·
 `GET /api/approvals` · `POST /api/approvals/{id}/resolve` · `POST /api/approvals/simulate` (demo flag) ·
 `GET /api/rag/documents` · `POST /api/rag/ingest` (multipart `file` + `classification`) · `POST /api/rag/query` ·
-`GET /api/ollama/status` · `POST /api/ollama/benchmark` · `GET /api/audit` (`/chain`, `/verify`, `/head`) · `GET /api/health`
+`GET /api/ollama/status` · `POST /api/ollama/benchmark` · `GET /api/audit` (`/chain`, `/verify`, `/head`) · `GET /api/health` ·
+`GET /api/slack/status` · `POST /api/slack/config` · `DELETE /api/slack/config` · `POST /api/slack/test` · `GET/PUT /api/slack/preferences` · `GET /api/slack/history`
 
 Responses are shaped to the frontend's TypeScript types. Timestamps are **UTC**.
+
+## Slack Integration & Outbound Relay Architecture
+
+Clarix AI provides a secure, air-gap-respecting Slack notification subsystem:
+
+```
++-------------------------------------------------------------+
+|                CLARIX AI PROTECTED PROCESS                  |
+|                                                             |
+|  [Agent Core]  [Approvals]  [Policy Engine]  [Air-Gap Guard]|
+|        |            |              |               |        |
+|        +------------+--------------+---------------+        |
+|                             |                               |
+|                     [SlackService]                          |
+|                             | (Sanitize & Deduplicate)      |
+|                             v                               |
+|            +--------------------------------+               |
+|            |  Durable SQLite Queue Table    |               |
+|            |      (slack_notifications)     |               |
+|            +--------------------------------+               |
++-----------------------------|-------------------------------+
+                              | (DB Polling)
+                              v
++-------------------------------------------------------------+
+|                ISOLATED SLACK RELAY WORKER                  |
+|                 (python -m clarix.slack.relay)              |
+|                                                             |
+|  * Runs outside the in-process socket guard                 |
+|  * Checks strict air-gap and relay authorization            |
+|  * Delivers Block Kit alerts to hooks.slack.com:443         |
+|  * Exponential backoff retries (max 3)                      |
++-------------------------------------------------------------+
+```
+
+### Air-Gap Guarantee
+1. **In-Process Guard Intact:** The main Python process retains `guard.install(enforce=True)`. Even if compromised, internal code cannot connect to external IP addresses or domain names.
+2. **Separated Egress:** Outbound delivery is delegated to an isolated relay worker with explicitly configured firewall rules.
+3. **Strict Air-Gap Default:** If `CLARIX_SLACK_RELAY_ENABLED=false` or physical connectivity is severed, alerts safely accumulate in the SQLite table without data loss or application crashes.
+4. **Credential Protection:** Slack webhook URLs are never returned over frontend REST APIs. They are masked as `https://hooks.slack.com/services/T.../***`.
+5. **Content Redaction:** All outgoing payloads are scanned to strip API tokens, bearer keys, credentials, and sensitive file paths before being written to the queue.
 
 ## Agent chat commands: `/rag`
 

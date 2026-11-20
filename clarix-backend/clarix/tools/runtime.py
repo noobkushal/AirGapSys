@@ -66,6 +66,17 @@ class ToolRuntime:
 
         if pol.decision == "BLOCK":
             self._audit(actor, spec, f"Blocked {label}: {pol.reasons[0] if pol.reasons else 'policy'}", "BLOCK", risk, cls, f"tool:{label}:blocked:{','.join(pol.matched)}")
+            if hasattr(self.ctx, "slack"):
+                self.ctx.slack.on_event(
+                    event_type="Critical Tool Execution Blocked",
+                    category="blocked_actions",
+                    severity="CRITICAL" if risk in ("CRITICAL", "HIGH") else "HIGH",
+                    title=f"Tool Execution Blocked: {spec.name}",
+                    description=f"Action '{label}' blocked by policy {','.join(pol.matched)}: {pol.reasons[0] if pol.reasons else 'Policy violation'}.",
+                    component=spec.name,
+                    decision="BLOCK",
+                    event_id=f"TOOL-{tool_id}-{int(start)}",
+                )
             return ToolResult(False, f"Denied by {pol.primary}: {pol.reasons[0].split(': ', 1)[-1]}", "BLOCK", None, pol.matched, 0, risk, cls)
 
         if pol.decision == "REQUIRE_APPROVAL" and not approved:
@@ -79,6 +90,17 @@ class ToolRuntime:
             out = self._execute(spec, arg, taint, actor)
         except sandbox.ToolError as e:
             self._audit(actor, spec, f"Rejected {label}: {e}", "BLOCK", risk, cls, f"tool:{label}:rejected")
+            if hasattr(self.ctx, "slack"):
+                self.ctx.slack.on_event(
+                    event_type="Critical Tool Execution Blocked",
+                    category="blocked_actions",
+                    severity="HIGH",
+                    title=f"Tool Execution Rejected: {spec.name}",
+                    description=f"Execution rejected by sandbox: {e}",
+                    component=spec.name,
+                    decision="BLOCK",
+                    event_id=f"TOOL-{tool_id}-{int(start)}",
+                )
             return ToolResult(False, f"Rejected: {e}", "BLOCK", None, pol.matched, 0, risk, cls)
         ms = max(1, int((time.perf_counter() - start) * 1000))
         self.ctx.tools.record_run(tool_id)

@@ -73,6 +73,16 @@ class Agent:
                                          {"step": "Egress", "detail": "No inference, no tools invoked", "ok": True}])
             ctx.audit.append(user=actor, action=f"Blocked prompt: {verdict.category}", component="Prompt Injection", risk=verdict.risk_label,
                              decision="BLOCK", classification=verdict.classification, payload=f"agent:{req_id}:blocked:{verdict.category}")
+            ctx.slack.on_event(
+                event_type="Malicious Prompt Blocked",
+                category="prompt_injection",
+                severity="CRITICAL",
+                title=f"Malicious Prompt Blocked: {verdict.category}",
+                description=f"Prompt rejected before model inference: {verdict.reason}",
+                component="AI Agent",
+                decision="BLOCK",
+                event_id=req_id,
+            )
             ms = int((time.perf_counter() - t0) * 1000)
             ctx.metrics.log_request("agent", "BLOCK", model, ms)
             text = f"Request blocked before inference: {verdict.reason} No model call was made and no tool was invoked."
@@ -81,6 +91,16 @@ class Agent:
         restricted = verdict.decision == "REQUIRE_APPROVAL"
         if restricted:
             reasons.append(f"Flagged by the injection detector ({verdict.category}): tools disabled for this request.")
+            ctx.slack.on_event(
+                event_type="Prompt Injection Detected",
+                category="prompt_injection",
+                severity="HIGH",
+                title=f"Prompt Injection Flagged: {verdict.category}",
+                description=f"Prompt flagged by security engine: {verdict.reason}. Tools disabled for this request.",
+                component="AI Agent",
+                decision="REQUIRE_APPROVAL",
+                event_id=req_id,
+            )
         taint = TaintContext()
         taint.absorb("USER", "operator-prompt", verdict.classification)
 

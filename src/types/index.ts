@@ -191,3 +191,61 @@ export interface BackendStatus {
   message: string;
   latencyMs?: number;
 }
+
+export type SlackConnectionState = 'CONNECTED' | 'DISCONNECTED' | 'ERROR';
+
+export interface SlackQueueStats {
+  total: number;
+  pending: number;
+  sent: number;
+  failed: number;
+  blockedAirgap: number;
+}
+
+export interface SlackStatus {
+  enabled: boolean;
+  connectionState: SlackConnectionState;
+  configured: boolean;
+  webhookUrlMasked: string;
+  channel: string;
+  lastSuccessAt: string | null;
+  lastError: string | null;
+  lastTestedAt: string | null;
+  strictAirgap: boolean;
+  relayEnabled: boolean;
+  queue: SlackQueueStats;
+}
+
+export interface SlackPreferences {
+  prompt_injection: boolean;
+  blocked_actions: boolean;
+  approval_requests: boolean;
+  approval_decisions: boolean;
+  network_security: boolean;
+  policy_changes: boolean;
+  critical_audit: boolean;
+}
+
+export interface SlackNotificationHistoryItem {
+  id: string;
+  eventType: string;
+  category: string;
+  severity: Risk | 'INFO';
+  title: string;
+  description: string;
+  component: string;
+  decision: string;
+  eventId: string;
+  timestamp: string;
+  status: 'PENDING' | 'SENT' | 'FAILED' | 'BLOCKED_AIRGAP';
+  attempts: number;
+  sentAt: string | null;
+  error: string | null;
+}
+
+export interface SlackConfigUpdate {
+  webhookUrl?: string;
+  channel?: string;
+  enabled?: boolean;
+}
+

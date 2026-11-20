@@ -29,4 +29,11 @@ ROUTES: list[Route] = [
     Route("GET", "/api/audit/verify", s.audit_verify, "Recompute and verify the whole chain server-side", "audit"),
     Route("GET", "/api/audit/head", s.audit_head, "Current head hash (anchor this externally)", "audit"),
     Route("GET", "/api/health", s.health_view, "Subsystem health and host telemetry", "health"),
+    Route("GET", "/api/slack/status", s.slack_status, "Slack integration status and posture", "slack"),
+    Route("POST", "/api/slack/config", s.slack_config_post, "Configure or update Slack settings", "slack"),
+    Route("DELETE", "/api/slack/config", s.slack_config_delete, "Clear Slack configuration and disable integration", "slack"),
+    Route("POST", "/api/slack/test", s.slack_test, "Test Slack connection", "slack", rate="chat"),
+    Route("GET", "/api/slack/preferences", s.slack_preferences_get, "Get Slack notification preferences", "slack"),
+    Route("PUT", "/api/slack/preferences", s.slack_preferences_put, "Update Slack notification preferences", "slack"),
+    Route("GET", "/api/slack/history", s.slack_history, "View Slack notification delivery history", "slack"),
 ]

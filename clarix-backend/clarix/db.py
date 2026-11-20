@@ -47,6 +47,46 @@ CREATE TABLE IF NOT EXISTS telemetry(ts REAL PRIMARY KEY, cpu REAL, mem_gb REAL,
 CREATE TABLE IF NOT EXISTS agent_sessions(session_key TEXT PRIMARY KEY, actor TEXT NOT NULL, kind TEXT NOT NULL,
   sources_json TEXT NOT NULL, updated REAL NOT NULL);
 CREATE TABLE IF NOT EXISTS grants(doc_name TEXT NOT NULL, granted_by TEXT NOT NULL, expires REAL NOT NULL);
+CREATE TABLE IF NOT EXISTS slack_config(
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  enabled INTEGER NOT NULL DEFAULT 0,
+  webhook_url TEXT NOT NULL DEFAULT '',
+  channel TEXT NOT NULL DEFAULT '',
+  last_success_at TEXT,
+  last_error TEXT,
+  last_tested_at TEXT,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS slack_preferences(
+  id INTEGER PRIMARY KEY CHECK (id = 1),
+  prompt_injection INTEGER NOT NULL DEFAULT 1,
+  blocked_actions INTEGER NOT NULL DEFAULT 1,
+  approval_requests INTEGER NOT NULL DEFAULT 1,
+  approval_decisions INTEGER NOT NULL DEFAULT 1,
+  network_security INTEGER NOT NULL DEFAULT 1,
+  policy_changes INTEGER NOT NULL DEFAULT 1,
+  critical_audit INTEGER NOT NULL DEFAULT 1,
+  updated_at TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS slack_notifications(
+  id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  category TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  title TEXT NOT NULL,
+  description TEXT NOT NULL,
+  component TEXT NOT NULL,
+  decision TEXT NOT NULL,
+  event_id TEXT NOT NULL,
+  timestamp TEXT NOT NULL,
+  payload_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'PENDING',
+  attempts INTEGER NOT NULL DEFAULT 0,
+  max_attempts INTEGER NOT NULL DEFAULT 3,
+  next_retry_at REAL NOT NULL DEFAULT 0,
+  sent_at TEXT,
+  error TEXT,
+  dedup_hash TEXT UNIQUE NOT NULL);
+CREATE INDEX IF NOT EXISTS idx_slack_notif_status ON slack_notifications(status, next_retry_at);
 """
 
 

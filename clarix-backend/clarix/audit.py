@@ -57,6 +57,18 @@ class AuditLog:
                 " VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)",
                 (seq, rec["id"], rec["timestamp"], rec["user"], rec["action"], rec["component"], risk, decision,
                  classification, rec["payload"], canon, prev, h))
+        if hasattr(self, "slack") and self.slack and (risk == "CRITICAL" or decision == "BLOCK"):
+            if component not in ("Slack Relay", "Slack Service", "Slack Integration", "Air-Gap Monitor", "Prompt Injection"):
+                self.slack.on_event(
+                    event_type="Critical Security Event Recorded",
+                    category="critical_audit",
+                    severity=risk if risk in ("CRITICAL", "HIGH") else "HIGH",
+                    title=f"Security Alert: {rec['action'][:80]}",
+                    description=f"Action '{rec['action']}' by '{rec['user']}' recorded with decision '{rec['decision']}' and classification '{rec['classification']}'.",
+                    component=rec["component"],
+                    decision=rec["decision"],
+                    event_id=rec["id"],
+                )
         return {**rec, "canonical": canon, "hash": h, "prevHash": prev}
 
     @staticmethod

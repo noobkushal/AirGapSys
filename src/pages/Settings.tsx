@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Bell, Database, Link2, Lock, Plug, RefreshCw, Server, Settings as Cog, ShieldCheck, SlidersHorizontal, Sparkles, WifiOff, AlertTriangle, RotateCcw } from 'lucide-react';
 import { Card, Page, PageHeader, Pill, Spinner, Toggle } from '../components/common';
+import { SlackIntegration } from '../components/settings/SlackIntegration';
 import { config, setEndpoints, settingsService } from '../services';
 import { useConsole, type Settings as S } from '../state/ConsoleContext';
 import { useLocalStorage } from '../hooks/useLocalStorage';
@@ -70,6 +71,9 @@ export default function Settings() {
             ))}
           </ul>
         </Card>
+
+        {/* Real Slack Incoming Webhook Integration */}
+        <SlackIntegration />
 
         <Card title="Future backend integration (FastAPI & Ollama)" icon={<Server color="#2563ff" />} aside={<Pill tone={config.useMocks ? 'blue' : 'green'} dot>{config.useMocks ? 'CURRENT: MOCK SERVICES ACTIVE' : 'CURRENT: LIVE BACKEND MODE'}</Pill>}>
           <p className="cx-sub">This frontend works without a backend. When FastAPI and Ollama are running, set <code>VITE_USE_MOCKS=false</code> in <code>.env.local</code> and point the endpoints below. The browser should talk only to the backend; the backend talks to Ollama on loopback.</p>

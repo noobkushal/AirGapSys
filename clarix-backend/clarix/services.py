@@ -100,6 +100,16 @@ def analyze(ctx, req):
     ctx.audit.append(user=req.operator, action=f"Classifier test: {v.category}", component="Prompt Injection", risk=v.risk_label,
                      decision=v.decision, classification=v.classification, payload=f"pi:analyze:{v.decision}")
     if v.decision == "BLOCK":
+        ctx.slack.on_event(
+            event_type="Malicious Prompt Blocked",
+            category="prompt_injection",
+            severity="CRITICAL",
+            title=f"Malicious Prompt Detected ({v.category})",
+            description=f"Prompt blocked by injection detector: {v.reason}",
+            component="Prompt Injection",
+            decision="BLOCK",
+            event_id=f"PI-{int(time.time())}",
+        )
         ctx.threats.record(category=v.category, input_text=text, reason=v.reason, risk=v.risk, status="BLOCKED", source="analyzer",
                            timeline=[{"step": "Ingress", "detail": "Submitted via analyzer", "ok": True}, {"step": "Scan", "detail": ", ".join(v.matched), "ok": False},
                                      {"step": "Policy", "detail": "Would be rejected before inference", "ok": False}])
@@ -162,6 +172,16 @@ def policy_patch(ctx, req):
     ctx.policy.set_enabled(pid, en)
     ctx.audit.append(user=req.operator, action=f"{'Enabled' if en else 'Disabled'} {pid}", component="Policy Engine", risk="LOW" if en else "HIGH",
                      decision="ALLOW", classification="INTERNAL", payload=f"policy:{pid}:{en}")
+    ctx.slack.on_event(
+        event_type="Security Policy Changed",
+        category="policy_changes",
+        severity="HIGH" if not en else "LOW",
+        title=f"Security Policy {pid} {'Enabled' if en else 'Disabled'}",
+        description=f"Policy {pid} was {'enabled' if en else 'disabled'} by {req.operator}.",
+        component="Policy Engine",
+        decision="ALLOWED",
+        event_id=f"POL-CHG-{pid}",
+    )
     return next(p for p in ctx.policy.view() if p["id"] == pid)
 
 
@@ -321,3 +341,43 @@ def audit_head(ctx, req):
 
 def health_view(ctx, req):
     return ctx.telemetry.health()
+
+
+# --------------------------------------------------------------------------- slack
+def slack_status(ctx, req):
+    return ctx.slack.get_status()
+
+
+def slack_config_post(ctx, req):
+    b = req.json()
+    webhook_url = b.get("webhookUrl")
+    channel = b.get("channel")
+    enabled = b.get("enabled")
+    return ctx.slack.save_config(webhook_url=webhook_url, channel=channel, enabled=enabled, operator=req.operator)
+
+
+def slack_config_delete(ctx, req):
+    return ctx.slack.clear_config(operator=req.operator)
+
+
+def slack_test(ctx, req):
+    return ctx.slack.test_connection(operator=req.operator)
+
+
+def slack_preferences_get(ctx, req):
+    return ctx.slack.get_preferences()
+
+
+def slack_preferences_put(ctx, req):
+    b = req.json()
+    return ctx.slack.save_preferences(b, operator=req.operator)
+
+
+def slack_history(ctx, req):
+    try:
+        limit = max(1, min(500, int(req.query.get("limit", "50"))))
+    except ValueError:
+        raise bad_request("limit must be an integer") from None
+    status = req.query.get("status")
+    return ctx.slack.get_history(limit=limit, status=status)
+
